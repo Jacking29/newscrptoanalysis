@@ -1,0 +1,998 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CryptoPulse — AI Pump Predictor</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #080c14;
+    --bg2: #0d1421;
+    --bg3: #111928;
+    --border: rgba(255,255,255,0.07);
+    --border2: rgba(255,255,255,0.12);
+    --text: #e8edf5;
+    --text2: #7a8ba8;
+    --text3: #4a5a72;
+    --accent: #00d4ff;
+    --accent2: #0099cc;
+    --green: #00e676;
+    --green2: #00a854;
+    --red: #ff4d6a;
+    --amber: #ffb300;
+    --purple: #b388ff;
+    --r: 10px;
+    --r2: 16px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Space Grotesk', sans-serif;
+    min-height: 100vh;
+    line-height: 1.6;
+  }
+  ::selection { background: var(--accent); color: var(--bg); }
+  
+  /* --- GRID BG --- */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: 
+      linear-gradient(rgba(0,212,255,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,212,255,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* --- HEADER --- */
+  header {
+    position: relative;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 32px;
+    border-bottom: 1px solid var(--border);
+    background: rgba(8,12,20,0.95);
+    backdrop-filter: blur(12px);
+    position: sticky;
+    top: 0;
+  }
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .logo-icon {
+    width: 36px; height: 36px;
+    background: linear-gradient(135deg, var(--accent), var(--purple));
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+  }
+  .logo-text { font-size: 20px; font-weight: 700; letter-spacing: -0.5px; }
+  .logo-text span { color: var(--accent); }
+  .header-badge {
+    font-size: 11px;
+    font-family: 'JetBrains Mono', monospace;
+    padding: 4px 10px;
+    border: 1px solid var(--border2);
+    border-radius: 20px;
+    color: var(--text2);
+  }
+  .live-dot {
+    display: inline-block;
+    width: 6px; height: 6px;
+    background: var(--green);
+    border-radius: 50%;
+    margin-right: 6px;
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+
+  /* --- MAIN --- */
+  main {
+    position: relative;
+    z-index: 1;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 32px 24px 60px;
+  }
+
+  /* --- HERO SECTION --- */
+  .hero {
+    text-align: center;
+    padding: 48px 20px 40px;
+  }
+  .hero-tag {
+    display: inline-block;
+    font-size: 11px;
+    font-family: 'JetBrains Mono', monospace;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--accent);
+    border: 1px solid rgba(0,212,255,0.3);
+    border-radius: 20px;
+    padding: 5px 14px;
+    margin-bottom: 20px;
+    background: rgba(0,212,255,0.05);
+  }
+  .hero h1 {
+    font-size: clamp(28px, 5vw, 52px);
+    font-weight: 700;
+    letter-spacing: -1.5px;
+    line-height: 1.1;
+    margin-bottom: 16px;
+  }
+  .hero h1 .glow {
+    background: linear-gradient(135deg, var(--accent), var(--purple));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .hero p {
+    font-size: 16px;
+    color: var(--text2);
+    max-width: 520px;
+    margin: 0 auto 36px;
+  }
+
+  /* --- INPUT PANEL --- */
+  .input-panel {
+    background: var(--bg2);
+    border: 1px solid var(--border2);
+    border-radius: var(--r2);
+    padding: 28px;
+    margin-bottom: 28px;
+  }
+  .input-panel label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--text2);
+    margin-bottom: 10px;
+  }
+  .input-row {
+    display: flex;
+    gap: 12px;
+  }
+  textarea {
+    flex: 1;
+    background: var(--bg3);
+    border: 1px solid var(--border2);
+    border-radius: var(--r);
+    color: var(--text);
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 14px;
+    padding: 14px 16px;
+    resize: vertical;
+    min-height: 110px;
+    transition: border-color 0.2s;
+    line-height: 1.6;
+  }
+  textarea:focus { outline: none; border-color: var(--accent); }
+  textarea::placeholder { color: var(--text3); }
+  .analyze-btn {
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    color: var(--bg);
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    border: none;
+    border-radius: var(--r);
+    padding: 0 24px;
+    cursor: pointer;
+    min-width: 140px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    transition: all 0.2s;
+  }
+  .analyze-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,212,255,0.3); }
+  .analyze-btn:active { transform: translateY(0); }
+  .analyze-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
+  .analyze-btn .btn-icon { font-size: 22px; }
+
+  .quick-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 14px;
+  }
+  .tag-btn {
+    font-size: 12px;
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--text2);
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 5px 12px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .tag-btn:hover { border-color: var(--accent); color: var(--accent); background: rgba(0,212,255,0.05); }
+
+  /* --- API KEY PANEL --- */
+  .apikey-panel {
+    background: rgba(255,179,0,0.05);
+    border: 1px solid rgba(255,179,0,0.2);
+    border-radius: var(--r);
+    padding: 14px 18px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 13px;
+    color: var(--amber);
+    flex-wrap: wrap;
+  }
+  .apikey-panel input {
+    flex: 1;
+    min-width: 200px;
+    background: rgba(0,0,0,0.3);
+    border: 1px solid rgba(255,179,0,0.3);
+    border-radius: 6px;
+    color: var(--text);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    padding: 7px 12px;
+  }
+  .apikey-panel input:focus { outline: none; border-color: var(--amber); }
+
+  /* --- LOADING --- */
+  .loading-state {
+    display: none;
+    text-align: center;
+    padding: 60px 20px;
+  }
+  .loading-state.active { display: block; }
+  .spinner {
+    width: 48px; height: 48px;
+    border: 2px solid var(--border2);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin: 0 auto 20px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .loading-steps { list-style: none; display: inline-block; text-align: left; }
+  .loading-steps li {
+    font-size: 13px;
+    color: var(--text2);
+    font-family: 'JetBrains Mono', monospace;
+    padding: 3px 0;
+    opacity: 0.4;
+    transition: opacity 0.4s;
+  }
+  .loading-steps li.active { opacity: 1; color: var(--accent); }
+  .loading-steps li.done { opacity: 0.7; color: var(--green); }
+
+  /* --- RESULTS --- */
+  #results { display: none; }
+  #results.active { display: block; }
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+  .section-header h2 {
+    font-size: 18px;
+    font-weight: 600;
+    letter-spacing: -0.3px;
+  }
+  .section-header .count-badge {
+    font-size: 11px;
+    font-family: 'JetBrains Mono', monospace;
+    background: rgba(0,212,255,0.1);
+    color: var(--accent);
+    border: 1px solid rgba(0,212,255,0.2);
+    border-radius: 20px;
+    padding: 2px 10px;
+  }
+
+  /* --- SUMMARY CARDS --- */
+  .summary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: 14px;
+    margin-bottom: 32px;
+  }
+  .summary-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--r);
+    padding: 18px;
+    text-align: center;
+  }
+  .summary-card .s-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--text2);
+    margin-bottom: 8px;
+  }
+  .summary-card .s-value {
+    font-size: 28px;
+    font-weight: 700;
+    font-family: 'JetBrains Mono', monospace;
+    line-height: 1;
+  }
+  .summary-card .s-sub {
+    font-size: 11px;
+    color: var(--text3);
+    margin-top: 4px;
+  }
+  .c-green { color: var(--green); }
+  .c-red { color: var(--red); }
+  .c-amber { color: var(--amber); }
+  .c-blue { color: var(--accent); }
+
+  /* --- COIN CARDS --- */
+  .coins-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 16px;
+    margin-bottom: 36px;
+  }
+  .coin-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--r2);
+    padding: 22px;
+    transition: all 0.25s;
+    position: relative;
+    overflow: hidden;
+  }
+  .coin-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+  }
+  .coin-card.pump::before { background: linear-gradient(90deg, var(--green), transparent); }
+  .coin-card.watch::before { background: linear-gradient(90deg, var(--amber), transparent); }
+  .coin-card.avoid::before { background: linear-gradient(90deg, var(--red), transparent); }
+  .coin-card:hover { border-color: var(--border2); transform: translateY(-3px); }
+
+  .coin-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+  }
+  .coin-info { display: flex; align-items: center; gap: 12px; }
+  .coin-avatar {
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+    font-weight: 700;
+    font-family: 'JetBrains Mono', monospace;
+    border: 1px solid var(--border2);
+    background: var(--bg3);
+    flex-shrink: 0;
+  }
+  .coin-name { font-size: 16px; font-weight: 700; letter-spacing: -0.3px; }
+  .coin-sym {
+    font-size: 11px;
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--text2);
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 2px 7px;
+    margin-top: 2px;
+    display: inline-block;
+  }
+  .signal-badge {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    padding: 5px 12px;
+    border-radius: 20px;
+    flex-shrink: 0;
+  }
+  .badge-pump { background: rgba(0,230,118,0.12); color: var(--green); border: 1px solid rgba(0,230,118,0.25); }
+  .badge-watch { background: rgba(255,179,0,0.12); color: var(--amber); border: 1px solid rgba(255,179,0,0.25); }
+  .badge-avoid { background: rgba(255,77,106,0.12); color: var(--red); border: 1px solid rgba(255,77,106,0.25); }
+
+  .confidence-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+  .conf-label { font-size: 11px; color: var(--text2); min-width: 75px; }
+  .conf-bar-bg {
+    flex: 1;
+    height: 4px;
+    background: var(--bg3);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  .conf-bar {
+    height: 100%;
+    border-radius: 2px;
+    transition: width 1s ease;
+  }
+  .bar-pump { background: linear-gradient(90deg, var(--green2), var(--green)); }
+  .bar-watch { background: linear-gradient(90deg, #cc8800, var(--amber)); }
+  .bar-avoid { background: linear-gradient(90deg, #cc1a33, var(--red)); }
+  .conf-pct {
+    font-size: 12px;
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 500;
+    min-width: 34px;
+    text-align: right;
+  }
+
+  .coin-reason {
+    font-size: 13px;
+    color: var(--text2);
+    line-height: 1.6;
+    margin-bottom: 14px;
+    padding: 12px;
+    background: var(--bg3);
+    border-radius: 8px;
+    border-left: 2px solid var(--border2);
+  }
+
+  .catalyst-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 12px;
+  }
+  .catalyst {
+    font-size: 11px;
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--text2);
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    padding: 3px 9px;
+  }
+
+  .pump-range {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 0 0;
+    border-top: 1px solid var(--border);
+    font-size: 12px;
+  }
+  .range-item { text-align: center; }
+  .range-label { color: var(--text3); font-size: 10px; text-transform: uppercase; letter-spacing: 0.8px; }
+  .range-val { font-family: 'JetBrains Mono', monospace; font-weight: 500; margin-top: 2px; }
+
+  /* --- MARKET CONTEXT --- */
+  .context-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--r2);
+    padding: 24px;
+    margin-bottom: 28px;
+  }
+  .context-card h3 {
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    margin-bottom: 14px;
+    color: var(--text2);
+    text-transform: uppercase;
+    font-size: 11px;
+    letter-spacing: 1.5px;
+  }
+  .context-text {
+    font-size: 14px;
+    color: var(--text2);
+    line-height: 1.8;
+  }
+
+  /* --- DISCLAIMER --- */
+  .disclaimer {
+    background: rgba(255,77,106,0.05);
+    border: 1px solid rgba(255,77,106,0.15);
+    border-radius: var(--r);
+    padding: 16px 20px;
+    font-size: 12px;
+    color: var(--text2);
+    line-height: 1.7;
+    margin-top: 8px;
+  }
+  .disclaimer strong { color: var(--red); }
+
+  /* --- DOWNLOAD BTN --- */
+  .action-row {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 32px;
+    flex-wrap: wrap;
+  }
+  .action-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    font-family: 'Space Grotesk', sans-serif;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: none;
+  }
+  .btn-download {
+    background: var(--green2);
+    color: white;
+  }
+  .btn-download:hover { background: var(--green); }
+  .btn-copy {
+    background: var(--bg3);
+    color: var(--text);
+    border: 1px solid var(--border2);
+  }
+  .btn-copy:hover { border-color: var(--accent); color: var(--accent); }
+  .btn-new {
+    background: var(--bg3);
+    color: var(--text2);
+    border: 1px solid var(--border);
+  }
+  .btn-new:hover { border-color: var(--border2); color: var(--text); }
+
+  /* --- ERROR STATE --- */
+  .error-state {
+    display: none;
+    background: rgba(255,77,106,0.07);
+    border: 1px solid rgba(255,77,106,0.2);
+    border-radius: var(--r);
+    padding: 24px;
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  .error-state.active { display: block; }
+  .error-state h3 { color: var(--red); margin-bottom: 8px; }
+  .error-state p { color: var(--text2); font-size: 14px; }
+
+  /* --- TIMESTAMP --- */
+  .timestamp {
+    font-size: 11px;
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--text3);
+    text-align: right;
+    margin-bottom: 16px;
+  }
+
+  @media (max-width: 640px) {
+    header { padding: 16px 18px; }
+    main { padding: 20px 16px 48px; }
+    .hero h1 { font-size: 28px; }
+    .input-row { flex-direction: column; }
+    .analyze-btn { width: 100%; padding: 14px; flex-direction: row; }
+    .coins-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-icon">⚡</div>
+    <div class="logo-text">Crypto<span>Pulse</span></div>
+  </div>
+  <div class="header-badge">
+    <span class="live-dot"></span>AI-Powered Analysis
+  </div>
+</header>
+
+<main>
+  <section class="hero">
+    <div class="hero-tag">🔬 Sentiment · NLP · Market Intelligence</div>
+    <h1>Predict Crypto <span class="glow">Pump Signals</span><br>from Breaking News</h1>
+    <p>Paste any crypto news, rumors, or market narrative. Our AI engine scans for hidden alpha and identifies which coins are most likely to pump.</p>
+  </section>
+
+  <!-- API Key Input -->
+  <div class="apikey-panel">
+    <span>⚠️ Masukkan API key Anthropic kamu untuk menggunakan fitur AI:</span>
+    <input type="password" id="apiKeyInput" placeholder="sk-ant-api03-..." />
+    <span style="font-size:11px; opacity:0.6;">Key tersimpan sementara di browser</span>
+  </div>
+
+  <!-- Input Panel -->
+  <div class="input-panel">
+    <label>📰 Paste News / Berita / Rumor Crypto</label>
+    <div class="input-row">
+      <textarea id="newsInput" placeholder="Contoh: Bitcoin ETF baru disetujui SEC. Ethereum upgrade Pectra selesai diluncurkan. Binance listing token baru bernama XYZ. Elon Musk tweet soal Dogecoin. Ripple menang lawsuit vs SEC..."></textarea>
+      <button class="analyze-btn" id="analyzeBtn" onclick="runAnalysis()">
+        <span class="btn-icon">🧠</span>
+        <span>Analisis<br>Sekarang</span>
+      </button>
+    </div>
+    <div class="quick-tags">
+      <span style="font-size:11px; color:var(--text3); margin-right:4px;">Quick fill:</span>
+      <button class="tag-btn" onclick="fillSample(1)">📈 ETF News</button>
+      <button class="tag-btn" onclick="fillSample(2)">🦅 Altcoin Season</button>
+      <button class="tag-btn" onclick="fillSample(3)">⚖️ Regulatory</button>
+      <button class="tag-btn" onclick="fillSample(4)">🐋 Whale Activity</button>
+      <button class="tag-btn" onclick="fillSample(5)">🔥 DeFi News</button>
+    </div>
+  </div>
+
+  <!-- Loading -->
+  <div class="loading-state" id="loadingState">
+    <div class="spinner"></div>
+    <p style="color:var(--text2); margin-bottom:16px; font-size:14px;">AI sedang memindai market intelligence...</p>
+    <ul class="loading-steps" id="loadingSteps">
+      <li id="step1">→ Parsing news entities & keywords</li>
+      <li id="step2">→ Running sentiment analysis</li>
+      <li id="step3">→ Mapping to coin exposure</li>
+      <li id="step4">→ Calculating pump probability scores</li>
+      <li id="step5">→ Generating risk assessment</li>
+    </ul>
+  </div>
+
+  <!-- Error State -->
+  <div class="error-state" id="errorState">
+    <h3>⚠️ Analysis Failed</h3>
+    <p id="errorMsg">Terjadi kesalahan. Cek API key kamu dan coba lagi.</p>
+  </div>
+
+  <!-- Results -->
+  <div id="results">
+    <div class="timestamp" id="timestamp"></div>
+
+    <div class="action-row">
+      <button class="action-btn btn-download" onclick="downloadReport()">⬇ Download Report (HTML)</button>
+      <button class="action-btn btn-copy" onclick="copyJSON()">📋 Copy JSON Data</button>
+      <button class="action-btn btn-new" onclick="resetApp()">🔄 Analisis Baru</button>
+    </div>
+
+    <div class="summary-grid" id="summaryGrid"></div>
+
+    <div class="section-header">
+      <h2>🎯 Coin Predictions</h2>
+      <span class="count-badge" id="coinCount">0 coins</span>
+    </div>
+    <div class="coins-grid" id="coinsGrid"></div>
+
+    <div class="context-card" id="contextCard">
+      <h3>🌐 Market Context & Macro Analysis</h3>
+      <div class="context-text" id="contextText"></div>
+    </div>
+
+    <div class="disclaimer">
+      <strong>⚠️ DISCLAIMER:</strong> Analisis ini bersifat edukatif dan dibuat oleh AI. Bukan merupakan saran investasi. Pasar kripto sangat volatil dan prediksi dapat salah. Selalu lakukan riset mandiri (DYOR) sebelum mengambil keputusan finansial. Past performance is not indicative of future results.
+    </div>
+  </div>
+</main>
+
+<script>
+const SAMPLES = {
+  1: `SEC officially approved multiple Bitcoin spot ETFs today, with BlackRock's iShares Bitcoin Trust seeing record inflows of $500M on day one. Fidelity and Ark Invest also getting strong demand. Meanwhile, Ethereum ETF approval expected next quarter. Grayscale converting GBTC to spot ETF. Institutional FOMO kicking in hard.`,
+  2: `Bitcoin dominance falling below 50% for first time in 2 years. Ethereum breaking out above key resistance. Solana seeing massive NFT volume surge. Avalanche announcing new gaming partnership with major studio. Polygon zkEVM launching mainnet with 100+ dApps. Chainlink securing 15 new enterprise partnerships this week.`,
+  3: `Ripple wins major lawsuit against SEC, XRP no longer classified as security. US Senate crypto bill passes committee vote, positive framework emerging. EU MiCA regulations finalized, major exchanges getting licensed. Hong Kong officially opens crypto trading to retail investors. Brazil approves Bitcoin as legal tender for certain transactions.`,
+  4: `On-chain data shows massive BTC whale accumulation — top 100 wallets adding 12,000 BTC in 48hrs. Anonymous wallet moved $2B ETH to cold storage. Dogecoin wallet activity spiking, Elon Musk changing Twitter payments to crypto. Shiba Inu burn rate increased 800% this week. FLOKI announcing major exchange listing on Binance tomorrow.`,
+  5: `Uniswap v4 launches with new hook architecture, TVL surging. Aave deploying on 5 new chains simultaneously. Curve Finance recovering after hack, team announces full compensation plan. Maker DAO rebranding to Sky, major tokenomics overhaul. Lido staking hitting new ATH. Pendle Finance integrating with 10 new yield protocols.`
+};
+
+let lastAnalysisData = null;
+
+function fillSample(n) {
+  document.getElementById('newsInput').value = SAMPLES[n];
+}
+
+async function runAnalysis() {
+  const news = document.getElementById('newsInput').value.trim();
+  const apiKey = document.getElementById('apiKeyInput').value.trim();
+
+  if (!news) { alert('Masukkan berita atau teks crypto dulu!'); return; }
+  if (!apiKey || !apiKey.startsWith('sk-')) {
+    alert('Masukkan API key Anthropic yang valid (format: sk-ant-...)'); return;
+  }
+
+  document.getElementById('analyzeBtn').disabled = true;
+  document.getElementById('results').classList.remove('active');
+  document.getElementById('errorState').classList.remove('active');
+  document.getElementById('loadingState').classList.add('active');
+  
+  const steps = ['step1','step2','step3','step4','step5'];
+  let si = 0;
+  steps.forEach(s => { document.getElementById(s).className = ''; });
+  
+  const stepInterval = setInterval(() => {
+    if (si > 0) document.getElementById(steps[si-1]).className = 'done';
+    if (si < steps.length) { document.getElementById(steps[si]).className = 'active'; si++; }
+  }, 800);
+
+  try {
+    const prompt = `You are a professional crypto market analyst and sentiment intelligence expert. Analyze the following news/text and identify which cryptocurrencies are most likely to pump (price increase significantly) based on the news sentiment, catalysts, and market dynamics.
+
+NEWS INPUT:
+"""
+${news}
+"""
+
+Respond ONLY with a valid JSON object in this exact format (no markdown, no code blocks, just raw JSON):
+{
+  "market_sentiment": "Bullish|Bearish|Mixed|Neutral",
+  "sentiment_score": <number 1-10, where 10 = extremely bullish>,
+  "market_context": "<2-3 sentence analysis of the overall market narrative and macro context from this news>",
+  "coins": [
+    {
+      "name": "<coin full name>",
+      "symbol": "<TICKER>",
+      "signal": "PUMP|WATCH|AVOID",
+      "confidence": <number 1-100>,
+      "emoji": "<single relevant emoji>",
+      "reason": "<2-3 sentences explaining why this coin is affected and the specific catalyst from the news>",
+      "catalysts": ["<catalyst 1>", "<catalyst 2>", "<catalyst 3 max>"],
+      "timeframe": "<e.g. 24-72h, 1-2 weeks, 1 month>",
+      "upside_potential": "<e.g. +15-30%>",
+      "key_risk": "<single main risk factor>"
+    }
+  ],
+  "top_pump_pick": "<TICKER of the single highest conviction pump pick>",
+  "coins_analyzed": <total number of coins in your coins array>,
+  "pump_count": <number of coins with signal PUMP>,
+  "watch_count": <number of coins with signal WATCH>,
+  "avoid_count": <number of coins with signal AVOID>
+}
+
+Include 4-8 coins total. Be specific and data-driven. Only include coins that are DIRECTLY or STRONGLY indirectly affected by this news. Do not include random coins just to fill space.`;
+
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 2000,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+
+    clearInterval(stepInterval);
+    steps.forEach(s => { document.getElementById(s).className = 'done'; });
+
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.error?.message || `HTTP ${res.status}`);
+    }
+
+    const data = await res.json();
+    const raw = data.content[0].text.trim();
+    
+    let cleaned = raw;
+    if (cleaned.startsWith('```')) {
+      cleaned = cleaned.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+    }
+    
+    const analysis = JSON.parse(cleaned);
+    lastAnalysisData = analysis;
+    
+    setTimeout(() => {
+      document.getElementById('loadingState').classList.remove('active');
+      renderResults(analysis);
+    }, 400);
+
+  } catch(e) {
+    clearInterval(stepInterval);
+    document.getElementById('loadingState').classList.remove('active');
+    document.getElementById('errorMsg').textContent = `Error: ${e.message}`;
+    document.getElementById('errorState').classList.add('active');
+    console.error(e);
+  }
+
+  document.getElementById('analyzeBtn').disabled = false;
+}
+
+function renderResults(data) {
+  const now = new Date();
+  document.getElementById('timestamp').textContent = 
+    `Analysis generated: ${now.toLocaleDateString('en-GB')} ${now.toLocaleTimeString('en-GB')} · Model: claude-sonnet-4`;
+
+  const sentColor = data.market_sentiment === 'Bullish' ? 'c-green' :
+    data.market_sentiment === 'Bearish' ? 'c-red' :
+    data.market_sentiment === 'Mixed' ? 'c-amber' : 'c-blue';
+
+  document.getElementById('summaryGrid').innerHTML = `
+    <div class="summary-card">
+      <div class="s-label">Market Sentiment</div>
+      <div class="s-value ${sentColor}" style="font-size:18px; font-weight:700;">${data.market_sentiment}</div>
+      <div class="s-sub">Overall market mood</div>
+    </div>
+    <div class="summary-card">
+      <div class="s-label">Sentiment Score</div>
+      <div class="s-value c-blue">${data.sentiment_score}<span style="font-size:14px;color:var(--text2)">/10</span></div>
+      <div class="s-sub">Bullish intensity</div>
+    </div>
+    <div class="summary-card">
+      <div class="s-label">🚀 Pump Signals</div>
+      <div class="s-value c-green">${data.pump_count || 0}</div>
+      <div class="s-sub">High conviction buys</div>
+    </div>
+    <div class="summary-card">
+      <div class="s-label">👁 Watch List</div>
+      <div class="s-value c-amber">${data.watch_count || 0}</div>
+      <div class="s-sub">Monitor closely</div>
+    </div>
+    <div class="summary-card">
+      <div class="s-label">🔴 Avoid</div>
+      <div class="s-value c-red">${data.avoid_count || 0}</div>
+      <div class="s-sub">High risk / bearish</div>
+    </div>
+    <div class="summary-card">
+      <div class="s-label">⭐ Top Pick</div>
+      <div class="s-value c-green" style="font-size:20px;">${data.top_pump_pick || '—'}</div>
+      <div class="s-sub">Highest conviction</div>
+    </div>
+  `;
+
+  document.getElementById('coinCount').textContent = `${data.coins_analyzed || data.coins.length} coins`;
+
+  const grid = document.getElementById('coinsGrid');
+  grid.innerHTML = data.coins.map(coin => {
+    const cls = coin.signal === 'PUMP' ? 'pump' : coin.signal === 'WATCH' ? 'watch' : 'avoid';
+    const barcls = `bar-${cls}`;
+    const badgecls = `badge-${cls}`;
+    const confColor = coin.signal === 'PUMP' ? 'var(--green)' : coin.signal === 'WATCH' ? 'var(--amber)' : 'var(--red)';
+    const catalysts = (coin.catalysts || []).map(c => `<span class="catalyst">${c}</span>`).join('');
+    const initials = coin.symbol.slice(0, 2);
+    return `
+    <div class="coin-card ${cls}">
+      <div class="coin-header">
+        <div class="coin-info">
+          <div class="coin-avatar">${coin.emoji || initials}</div>
+          <div>
+            <div class="coin-name">${coin.name}</div>
+            <span class="coin-sym">$${coin.symbol}</span>
+          </div>
+        </div>
+        <span class="signal-badge ${badgecls}">${coin.signal}</span>
+      </div>
+      <div class="confidence-row">
+        <span class="conf-label">Confidence</span>
+        <div class="conf-bar-bg">
+          <div class="conf-bar ${barcls}" style="width:${coin.confidence}%"></div>
+        </div>
+        <span class="conf-pct" style="color:${confColor}">${coin.confidence}%</span>
+      </div>
+      <div class="coin-reason">${coin.reason}</div>
+      <div class="catalyst-tags">${catalysts}</div>
+      <div class="pump-range">
+        <div class="range-item">
+          <div class="range-label">Timeframe</div>
+          <div class="range-val" style="color:var(--accent)">${coin.timeframe || 'N/A'}</div>
+        </div>
+        <div class="range-item">
+          <div class="range-label">Upside Est.</div>
+          <div class="range-val" style="color:var(--green)">${coin.upside_potential || 'N/A'}</div>
+        </div>
+        <div class="range-item">
+          <div class="range-label">Key Risk</div>
+          <div class="range-val" style="color:var(--red); font-size:11px; max-width:120px;">${coin.key_risk || 'N/A'}</div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('contextText').textContent = data.market_context || 'No market context provided.';
+  document.getElementById('results').style.display = 'block';
+  document.getElementById('results').classList.add('active');
+  document.getElementById('results').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function downloadReport() {
+  if (!lastAnalysisData) return;
+  const now = new Date();
+  const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CryptoPulse Report — ${now.toLocaleDateString()}</title>
+<style>
+  body { font-family: 'Segoe UI', sans-serif; background: #080c14; color: #e8edf5; max-width: 900px; margin: 0 auto; padding: 40px 24px; }
+  h1 { font-size: 32px; font-weight: 700; margin-bottom: 4px; }
+  h1 span { color: #00d4ff; }
+  .ts { font-size: 12px; color: #4a5a72; margin-bottom: 32px; font-family: monospace; }
+  .summary { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 40px; }
+  .scard { background: #0d1421; border: 1px solid #1a2a40; border-radius: 10px; padding: 18px; text-align: center; }
+  .scard .sl { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: #7a8ba8; margin-bottom: 6px; }
+  .scard .sv { font-size: 24px; font-weight: 700; font-family: monospace; }
+  h2 { font-size: 20px; font-weight: 600; margin-bottom: 20px; border-bottom: 1px solid #1a2a40; padding-bottom: 10px; }
+  .coin { background: #0d1421; border: 1px solid #1a2a40; border-radius: 12px; padding: 20px; margin-bottom: 16px; }
+  .coin-hdr { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+  .coin-name { font-size: 18px; font-weight: 700; }
+  .coin-sym { font-size: 12px; color: #7a8ba8; font-family: monospace; }
+  .badge { font-size: 10px; font-weight: 700; padding: 4px 12px; border-radius: 20px; }
+  .pump { color: #00e676; background: rgba(0,230,118,0.1); border: 1px solid rgba(0,230,118,0.2); }
+  .watch { color: #ffb300; background: rgba(255,179,0,0.1); border: 1px solid rgba(255,179,0,0.2); }
+  .avoid { color: #ff4d6a; background: rgba(255,77,106,0.1); border: 1px solid rgba(255,77,106,0.2); }
+  .reason { font-size: 13px; color: #7a8ba8; line-height: 1.6; margin: 10px 0; padding: 12px; background: #111928; border-radius: 8px; }
+  .meta { display: flex; gap: 24px; font-size: 12px; font-family: monospace; padding-top: 12px; border-top: 1px solid #1a2a40; }
+  .meta div { }
+  .meta .ml { color: #4a5a72; font-size: 10px; }
+  .meta .mv { color: #e8edf5; }
+  .context { background: #0d1421; border: 1px solid #1a2a40; border-radius: 12px; padding: 20px; margin-top: 28px; }
+  .disc { font-size: 11px; color: #4a5a72; line-height: 1.7; margin-top: 32px; padding: 16px; background: rgba(255,77,106,0.05); border: 1px solid rgba(255,77,106,0.1); border-radius: 8px; }
+  @media print { body { background: white; color: black; } }
+</style>
+</head>
+<body>
+<h1>Crypto<span>Pulse</span> AI Report</h1>
+<div class="ts">Generated: ${now.toLocaleString()} · claude-sonnet-4 · CryptoPulse v1.0</div>
+<div class="summary">
+  <div class="scard"><div class="sl">Sentiment</div><div class="sv" style="color:#00d4ff">${lastAnalysisData.market_sentiment}</div></div>
+  <div class="scard"><div class="sl">Sentiment Score</div><div class="sv">${lastAnalysisData.sentiment_score}/10</div></div>
+  <div class="scard"><div class="sl">Top Pick</div><div class="sv" style="color:#00e676">${lastAnalysisData.top_pump_pick}</div></div>
+  <div class="scard"><div class="sl">🚀 Pump</div><div class="sv" style="color:#00e676">${lastAnalysisData.pump_count}</div></div>
+  <div class="scard"><div class="sl">👁 Watch</div><div class="sv" style="color:#ffb300">${lastAnalysisData.watch_count}</div></div>
+  <div class="scard"><div class="sl">🔴 Avoid</div><div class="sv" style="color:#ff4d6a">${lastAnalysisData.avoid_count}</div></div>
+</div>
+<h2>Coin Predictions</h2>
+${lastAnalysisData.coins.map(c => `
+<div class="coin">
+  <div class="coin-hdr">
+    <div>
+      <div class="coin-name">${c.emoji || ''} ${c.name} <span class="coin-sym">$${c.symbol}</span></div>
+    </div>
+    <span class="badge ${c.signal.toLowerCase()}">${c.signal} · ${c.confidence}% confidence</span>
+  </div>
+  <div class="reason">${c.reason}</div>
+  <div class="meta">
+    <div><div class="ml">Timeframe</div><div class="mv">${c.timeframe}</div></div>
+    <div><div class="ml">Upside Est.</div><div class="mv" style="color:#00e676">${c.upside_potential}</div></div>
+    <div><div class="ml">Key Risk</div><div class="mv" style="color:#ff4d6a">${c.key_risk}</div></div>
+  </div>
+</div>`).join('')}
+<div class="context"><strong style="color:#7a8ba8; font-size:11px; text-transform:uppercase; letter-spacing:1px;">Market Context</strong><p style="margin-top:10px; font-size:14px; color:#7a8ba8; line-height:1.7;">${lastAnalysisData.market_context}</p></div>
+<div class="disc">⚠️ DISCLAIMER: Analisis ini bersifat edukatif dan dibuat oleh AI. Bukan merupakan saran investasi. Pasar kripto sangat volatil dan prediksi dapat salah. Selalu lakukan riset mandiri (DYOR) sebelum mengambil keputusan finansial. Past performance is not indicative of future results.</div>
+</body></html>`;
+
+  const blob = new Blob([html], { type: 'text/html' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `CryptoPulse_Report_${now.toISOString().slice(0,10)}.html`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function copyJSON() {
+  if (!lastAnalysisData) return;
+  navigator.clipboard.writeText(JSON.stringify(lastAnalysisData, null, 2))
+    .then(() => { alert('JSON data copied to clipboard!'); });
+}
+
+function resetApp() {
+  document.getElementById('results').classList.remove('active');
+  document.getElementById('results').style.display = 'none';
+  document.getElementById('newsInput').value = '';
+  document.getElementById('errorState').classList.remove('active');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+</script>
+</body>
+</html>
